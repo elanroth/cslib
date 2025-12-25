@@ -27,13 +27,13 @@ namespace AlgorithmicRandomness
 open Part
 
 /-- An indexed family of partial oracles. -/
-abbrev OracleFam (α : Type) := α → ℕ →. ℕ
+abbrev OracleFamily (α : Type) := α → ℕ →. ℕ
 
-/-- A single oracle (not a family). -/
+/-- A single oracle. -/
 abbrev Oracle := ℕ →. ℕ
 
 /-- View a single oracle as a family indexed by `Unit`. -/
-def asFam (O : Oracle) : OracleFam Unit := fun _ => O
+def asFamily (O : Oracle) : OracleFamily Unit := fun _ => O
 
 -- /-- A total set oracle: query membership and return `1/0`. -/
 -- def setOracle (A : Set ℕ) : Oracle :=
@@ -44,12 +44,12 @@ Interpret a natural number `e` as a `codeo`-program (via `decodeCodeo`)
 and run it relative to oracle family `F`.
 -/
 noncomputable def Φ {α : Type} [Primcodable α]
-  (F : OracleFam α) (e : ℕ) : ℕ →. ℕ :=
+  (F : OracleFamily α) (e : ℕ) : ℕ →. ℕ :=
   evalo F (decodeCodeo e)
 
 /-- Universal numeric machine relative to oracle family `F`. -/
 noncomputable def Uₙ {α : Type} [Primcodable α]
-  (F : OracleFam α) (e : ℕ) : ℕ →. ℕ :=
+  (F : OracleFamily α) (e : ℕ) : ℕ →. ℕ :=
   fun x => (Φ F e) x
 
 /-- Encode a `BinSeq` as a natural. -/
@@ -69,26 +69,26 @@ using `decodeCodeo`, and executed via `evalo`. Input/output are encoded/decoded
 using the `Encodable BinSeq` instance.
 -/
 noncomputable def U {α : Type} [Primcodable α]
-  (F : OracleFam α) (p : BinSeq) : BinSeq →. BinSeq :=
+  (F : OracleFamily α) (p : BinSeq) : BinSeq →. BinSeq :=
   fun σ => (evalo F (decodeCodeo (binEnc p)) (binEnc σ)).bind binDec
 
 /-
 Plain Kolmogorov complexity (relativized).
 
-You asked for: no `WithTop`. If nothing shorter outputs `x`, return `length x`.
+If nothing shorter outputs `x`, return `length x`.
 
-So we define KC as the shortest program length among those that output `x`,
+Define KC as the shortest program length among those that output `x`,
 bounded above by `x.length`, and defaulting to `x.length`.
 -/
 
 /-- Does there exist a program of length `n` producing `x` (on empty input)? -/
 def Produces {α : Type} [Primcodable α]
-  (F : OracleFam α) (x : BinSeq) (n : Nat) : Prop :=
-  ∃ p : BinSeq, p.length = n ∧ U F p BinSeq.empty = Part.some x
+  (F : OracleFamily α) (x : BinSeq) (n : Nat) : Prop :=
+  ∃ p : BinSeq, p.length = n ∧ U F p [] = Part.some x
 
 /-- lengths of programs producing `x` on empty input -/
-def goodLengths {α : Type} [Primcodable α] (F : OracleFam α) (x : BinSeq) : Set Nat :=
-  { n | ∃ p : BinSeq, p.length = n ∧ U F p BinSeq.empty = Part.some x }
+def goodLengths {α : Type} [Primcodable α] (F : OracleFamily α) (x : BinSeq) : Set Nat :=
+  { n | ∃ p : BinSeq, p.length = n ∧ U F p [] = Part.some x }
 
 /--
 Plain KC relative to `F`.
@@ -97,7 +97,7 @@ We take the least `n` in `goodLengths F x`, but if none exist we return `x.lengt
 (So the value is always a natural, never `⊤`.)
 -/
 noncomputable def plainKC {α : Type} [Primcodable α]
-  (F : OracleFam α) (x : BinSeq) : Nat :=
+  (F : OracleFamily α) (x : BinSeq) : Nat :=
 by
   classical
   let S : Set Nat := goodLengths F x
@@ -109,6 +109,6 @@ by
 
 /-- Plain KC relative to a single oracle. -/
 noncomputable def plainKC₁ (O : Oracle) (x : BinSeq) : Nat :=
-  plainKC (asFam O) x
+  plainKC (asFamily O) x
 
 end AlgorithmicRandomness
