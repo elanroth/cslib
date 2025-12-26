@@ -16,6 +16,7 @@ import Mathlib.Computability.Partrec
 import Cslib.Computability.KolmogorovComplexity.Encoding
 -- The above file was ported from the working directory on Mathlib.Computability
 import Cslib.Computability.KolmogorovComplexity.BinSeq
+import Mathlib.Data.Nat.Lattice
 
 -- import BinSeq
 
@@ -98,13 +99,9 @@ We take the least `n` in `goodLengths F x`, but if none exist we return `x.lengt
 -/
 noncomputable def plainKC {α : Type} [Primcodable α]
   (F : OracleFamily α) (x : BinSeq) : Nat :=
-by
-  classical
+(Classical.decEq Nat |> fun _ =>
   let S : Set Nat := goodLengths F x
-  by_cases h : S.Nonempty
-  · sorry
-    -- exact sInf S
-  · exact x.length
+  if h : S.Nonempty then sInf S else x.length)
 
 
 /-- Plain KC relative to a single oracle. -/
